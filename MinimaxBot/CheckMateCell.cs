@@ -8,6 +8,10 @@ namespace MinimaxBot
         public int Y;
         public CheckMateCell(int x, int y)
         {
+            if (x < 0 || x > 7 || y < 0 || y > 7)
+            {
+                throw new ArgumentException($"invalid x or y: {x},{y}");
+            }
             X = x;
             Y = y;
         }
@@ -18,12 +22,14 @@ namespace MinimaxBot
             return new CheckMateCell(X + dx, Y + dy);
         }
 
-        public bool IsValid()
+        public MoveDirection MoveDirectionTo(CheckMateCell other)
         {
-            return X > 0 && X < 7 && Y > 0 && Y < 7;
+            var dx = other.X - X;
+            var dy = other.Y - Y;
+            return MoveDirectionFromDxDy(dx, dy);
         }
-
-        public static Tuple<int, int> MoveDirectionToDxDy(MoveDirection moveDirection)
+        
+        private static Tuple<int, int> MoveDirectionToDxDy(MoveDirection moveDirection)
         {
             return moveDirection switch
             {
@@ -35,6 +41,18 @@ namespace MinimaxBot
             };
         }
 
+        private static MoveDirection MoveDirectionFromDxDy(int dx, int dy)
+        {
+            return (dx, dy) switch
+            {
+                (-1, -1) => MoveDirection.UpLeft,
+                (1, -1) => MoveDirection.UpRight,
+                (-1, 1) => MoveDirection.DownLeft,
+                (1, 1) => MoveDirection.DownRight,
+                _ => throw new ArgumentException($"Cannot convert {dx},{dy} to MoveDirection")
+            };
+        }
+        
         public static bool operator ==(CheckMateCell left, CheckMateCell right)
         {
             return left.X == right.X && left.Y == right.Y;
@@ -43,6 +61,25 @@ namespace MinimaxBot
         public static bool operator !=(CheckMateCell left, CheckMateCell right)
         {
             return !(left == right);
+        }
+        
+        public static CheckMateCell FromStringPosition(string position)
+        {
+            if (position.Length > 2 || !char.IsLetter(position[0]) || !char.IsDigit(position[1]))
+            {
+                throw new ArgumentException("Checkmate cell string should contain 2 chars: letter and digit");
+            }
+
+            var x = position[0] - 'a';
+            var y = position[1] - '0';
+            var res = new CheckMateCell(x, y);
+            return res;
+        }
+
+        public override string ToString()
+        {
+            var xChar = 'a' + X;
+            return $"{xChar}{Y + 1}";
         }
     }
 }
