@@ -4,11 +4,18 @@ using System.Linq;
 
 namespace MinimaxBot
 {
+    public enum GameState
+    {
+        SheepWin,
+        WolvesWin,
+        GameContinues       
+    }
+    
     public class Position
     {
         private CheckMateCell _sheepCell;
         private readonly CheckMateCell[] _wolvesCells;
-        
+
         public Position(CheckMateCell sheepCell, CheckMateCell[] wolvesCells)
         {
             if (wolvesCells.Length != 4)
@@ -18,11 +25,14 @@ namespace MinimaxBot
             
             this._sheepCell = sheepCell;
             this._wolvesCells = wolvesCells;
+            GameStatus = CheckWin();
         }
 
         public CheckMateCell SheepCell => _sheepCell;
 
         public IEnumerable<CheckMateCell> WolvesCells => _wolvesCells;
+
+        public GameState GameStatus { get; }
 
         public IEnumerable<Position> NextSheepPositions()
         {
@@ -138,6 +148,21 @@ namespace MinimaxBot
             }
 
             return true;
+        }
+
+        private GameState CheckWin()
+        {
+            if (_sheepCell.Y == 7)
+            {
+                return GameState.SheepWin;
+            }
+
+            if (!NextSheepPositions().Any())
+            {
+                return GameState.WolvesWin;
+            }
+
+            return GameState.GameContinues;
         }
     }
 }
