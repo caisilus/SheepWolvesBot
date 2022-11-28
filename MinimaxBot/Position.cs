@@ -4,48 +4,49 @@ using System.Linq;
 
 namespace MinimaxBot
 {
-    public enum MoveDirection
-    {
-        UpLeft, 
-        UpRight,
-        DownLeft,
-        DownRight
-    }
-    
     public class Position
     {
-        private CheckMateCell _sheepPosition;
-        private readonly CheckMateCell[] _wolfPositions = new CheckMateCell[4];
-
-        public Position(string sheepPosition, string[] wolfPositions)
+        private CheckMateCell _sheepCell;
+        private readonly CheckMateCell[] _wolvesCells;
+        
+        public Position(CheckMateCell sheepCell, CheckMateCell[] wolvesCells)
         {
-            this._sheepPosition = CheckMateCell.FromStringPosition(sheepPosition);
-
-            for (var i = 0; i < 4; i++)
-            {
-                this._wolfPositions[i] = CheckMateCell.FromStringPosition(wolfPositions[i]);
-            }
-        }
-
-        public Position(CheckMateCell sheepPosition, CheckMateCell[] wolfPositions)
-        {
-            if (wolfPositions.Length != 4)
+            if (wolvesCells.Length != 4)
             {
                 throw new ArgumentException("Invalid number of wolves");
             }
             
-            this._sheepPosition = sheepPosition;
-            this._wolfPositions = wolfPositions;
+            this._sheepCell = sheepCell;
+            this._wolvesCells = wolvesCells;
         }
 
-        public CheckMateCell SheepPosition => _sheepPosition;
+        public CheckMateCell SheepCell => _sheepCell;
 
-        public bool SheepCanMove(MoveDirection moveDirection)
+        public IEnumerable<CheckMateCell> WolvesCells => _wolvesCells;
+
+        public IEnumerable<Position> NextSheepPositions()
+        {
+            List<Position> nextPositions = new List<Position>();
+            var directions = Move.AllMoveDirections();
+
+            foreach (var direction in directions)
+            {
+                var nextPosition = _sheepCell.NeighbourFrom(direction);
+                if (SheepCanMoveTo(nextPosition))
+                {
+                    var pos = new Position(_sheepCell.NeighbourFrom(direction), _wolvesCells);
+                    nextPositions.Add(pos);
+                }
+            }
+
+            return nextPositions;
+        }
+        
+        private bool SheepCanMoveTo(CheckMateCell to)
         {
             try
             {
-                var nextCell = _sheepPosition.NeighbourFrom(moveDirection);
-                return _wolfPositions.All(wolfPos => nextCell != wolfPos);
+                return _wolvesCells.All(wolfPos => to != wolfPos);
             }
             catch (ArgumentException ae)
             {
@@ -53,37 +54,37 @@ namespace MinimaxBot
             }
         }
 
-        public IEnumerable<Position> NextSheepPositions()
+        public IEnumerable<Position> NextWolvesPositions()
         {
-            List<Position> possibleNextPositions = new List<Position>();
-            MoveDirection[] directions = new[]
-            {
-                MoveDirection.UpLeft, MoveDirection.UpRight,
-                MoveDirection.DownLeft, MoveDirection.DownRight
-            };
+            List<Position> nextPositions = new List<Position>();
+            var directions = Move.AllMoveDirections();
 
-            foreach (var direction in directions)
+            for (var i = 0; i < _wolvesCells.Length; i++)
             {
-                if (SheepCanMove(direction))
+                foreach (var direction in directions)
                 {
-                    var pos = new Position(_sheepPosition.NeighbourFrom(direction), _wolfPositions);
-                    possibleNextPositions.Add(pos);
-                }
+                    var newCell = _wolvesCells[i].NeighbourFrom(direction);
+                    if (!WolfCanMoveTo(i, newCell))
+                        continue;
+
+                    var position = WolfMoveTo(i, newCell);
+                    nextPositions.Add(position);
+                }    
             }
 
-            return possibleNextPositions;
+            return nextPositions;
         }
 
         public Position PositionMoveTo(Move move, bool sheepTurn)
         {
-            if (sheepTurn && move.From == _sheepPosition)
+            if (sheepTurn && move.From == _sheepCell)
             {
                 return SheepMoveTo(move.To);
             }
 
-            for (var i = 0; i < _wolfPositions.Length; i++)
+            for (var i = 0; i < _wolvesCells.Length; i++)
             {
-                if (_wolfPositions[i] == move.From)
+                if (_wolvesCells[i] == move.From)
                 {
                     return WolfMoveTo(i, move.To);
                 }
@@ -94,14 +95,12 @@ namespace MinimaxBot
 
         private Position SheepMoveTo(CheckMateCell newPosition)
         {
-            var direction = _sheepPosition.MoveDirectionTo(newPosition);
-            
-            if (!SheepCanMove(direction))
+            if (!SheepCanMoveTo(newPosition))
             {
                 throw new ArgumentException($"Sheep can't move to cell {newPosition}");
             }
 
-            return new Position(newPosition, _wolfPositions);
+            return new Position(newPosition, _wolvesCells);
         }
 
         private Position WolfMoveTo(int wolfIndex, CheckMateCell newPosition)
@@ -111,28 +110,30 @@ namespace MinimaxBot
                 throw new ArgumentException($"Wolf ${wolfIndex} can't move to cell {newPosition}");
             }
 
-            var newWolfCells = new CheckMateCell[_wolfPositions.Length];
-            for (int i = 0; i < _wolfPositions.Length; i++)
-            {
-                newWolfCells[i] = _wolfPositions[i];
-            }
+            var newWolvesCells = WolfMovedWolvesPositions(wolfIndex, newPosition);
 
-            newWolfCells[wolfIndex] = newPosition;
-
-            return new Position(_sheepPosition, newWolfCells);
+            return new Position(_sheepCell, newWolvesCells);
         }
 
+        private CheckMateCell[] WolfMovedWolvesPositions(int wolfIndex, CheckMateCell newPosition)
+        {
+            var newWolvesCells = new CheckMateCell[_wolvesCells.Length];
+            Array.Copy(_wolvesCells, newWolvesCells, _wolvesCells.Length);
+            newWolvesCells[wolfIndex] = newPosition;
+            return newWolvesCells;
+        }
+        
         private bool WolfCanMoveTo(int wolfIndex, CheckMateCell newPosition)
         {
-            if (newPosition == _sheepPosition)
+            if (newPosition == _sheepCell)
                 return false;
 
-            for (int i = 0; i < _wolfPositions.Length; i++)
+            for (int i = 0; i < _wolvesCells.Length; i++)
             {
                 if (i == wolfIndex)
                     continue;
 
-                if (newPosition == _wolfPositions[i])
+                if (newPosition == _wolvesCells[i])
                     return false;
             }
 

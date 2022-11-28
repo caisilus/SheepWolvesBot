@@ -19,8 +19,8 @@ namespace MinimaxBot
                 var nextPositions = currentPosition.NextSheepPositions();
                 foreach (var nextPosition in nextPositions)
                 {
-                    CheckMateCell currentCell = currentPosition.SheepPosition;
-                    CheckMateCell nextCell = nextPosition.SheepPosition;
+                    CheckMateCell currentCell = currentPosition.SheepCell;
+                    CheckMateCell nextCell = nextPosition.SheepCell;
                     distances[nextCell.X][nextCell.Y] = distances[currentCell.X][currentCell.Y] + 1;
                 }
             }

@@ -1,7 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MinimaxBot
 {
+    public enum MoveDirection
+    {
+        UpLeft, 
+        UpRight,
+        DownLeft,
+        DownRight
+    }
+    
     public class Move
     {
         public CheckMateCell From { get; }
@@ -36,6 +45,17 @@ namespace MinimaxBot
         public override string ToString()
         {
             return From.ToString() + " " + To.ToString();
+        }
+
+        public static MoveDirection[] AllMoveDirections()
+        {
+            MoveDirection[] directions = new[]
+            {
+                MoveDirection.UpLeft, MoveDirection.UpRight,
+                MoveDirection.DownLeft, MoveDirection.DownRight
+            };
+
+            return directions;
         }
     }
 }
