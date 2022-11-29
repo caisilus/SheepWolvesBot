@@ -37,31 +37,38 @@ namespace MinimaxBot
         public IEnumerable<Position> NextSheepPositions()
         {
             List<Position> nextPositions = new List<Position>();
-            var directions = Move.AllMoveDirections();
-
-            foreach (var direction in directions)
+            var nextSheepCells = NextSheepCells();
+            foreach (var sheepCell in nextSheepCells)
             {
-                var nextPosition = _sheepCell.NeighbourFrom(direction);
-                if (SheepCanMoveTo(nextPosition))
-                {
-                    var pos = new Position(_sheepCell.NeighbourFrom(direction), _wolvesCells);
-                    nextPositions.Add(pos);
-                }
+                nextPositions.Add(new Position(sheepCell, _wolvesCells));
             }
 
             return nextPositions;
         }
+
+        private IEnumerable<CheckMateCell> NextSheepCells()
+        {
+            var directions = Move.AllMoveDirections();
+            var cells = new List<CheckMateCell>();
+            
+            foreach (var direction in directions)
+            {
+                if (!_sheepCell.HasNeighbourFrom(direction))
+                    continue;
+                
+                var nextCell = _sheepCell.NeighbourFrom(direction);
+                if (SheepCanMoveTo(nextCell))
+                {
+                    cells.Add(nextCell);
+                }
+            }
+
+            return cells;
+        }
         
         private bool SheepCanMoveTo(CheckMateCell to)
         {
-            try
-            {
-                return _wolvesCells.All(wolfPos => to != wolfPos);
-            }
-            catch (ArgumentException ae)
-            {
-                return false;
-            }
+            return _wolvesCells.All(wolfPos => to != wolfPos);
         }
 
         public IEnumerable<Position> NextWolvesPositions()
@@ -73,6 +80,9 @@ namespace MinimaxBot
             {
                 foreach (var direction in directions)
                 {
+                    if (!_wolvesCells[i].HasNeighbourFrom(direction))
+                        continue;
+                    
                     var newCell = _wolvesCells[i].NeighbourFrom(direction);
                     if (!WolfCanMoveTo(i, newCell))
                         continue;
@@ -157,12 +167,30 @@ namespace MinimaxBot
                 return GameState.SheepWin;
             }
 
-            if (!NextSheepPositions().Any())
+            if (!NextSheepCells().Any())
             {
                 return GameState.WolvesWin;
             }
 
             return GameState.GameContinues;
+        }
+
+        public Move CalculateMoveToPosition(Position destination)
+        {
+            if (_sheepCell != destination.SheepCell)
+            {
+                return new Move(_sheepCell, destination.SheepCell);
+            }
+
+            for (var i = 0; i < _wolvesCells.Length; i++)
+            {
+                if (_wolvesCells[i] != destination._wolvesCells[i])
+                {
+                    return new Move(_wolvesCells[i], destination._wolvesCells[i]);
+                }
+            }
+
+            throw new ApplicationException("Cannot calculate move");
         }
     }
 }

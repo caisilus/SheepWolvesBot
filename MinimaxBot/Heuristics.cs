@@ -7,9 +7,11 @@ namespace MinimaxBot
     
     public class BasicHeuristic
     {
+        const int BoardSize = 8;
+        
         public static int Evaluate(Position position)
         {
-            var distances = ZeroMatrix(8);
+            var distances = ZeroMatrix(BoardSize);
             
             Queue<Position> queue = new Queue<Position>();
             queue.Enqueue(position);
@@ -25,13 +27,19 @@ namespace MinimaxBot
                 }
             }
 
-            var downRow = distances[7];
-            return downRow.Where(x=>x>0).Min();
+            var downRow = distances[BoardSize - 1];
+            var nonZeroDistances = downRow.Where(x=>x > 0).ToArray();
+            if (nonZeroDistances.Length == 0)
+            {
+                return 254;
+            }
+
+            return nonZeroDistances.Min();
         }
 
         private static int[][] ZeroMatrix(int mSize)
         {
-            int[][] m = new int[][] { };
+            int[][] m = new int[mSize][];
             for (int i = 0; i < mSize; i++)
             {
                 int[] row = new int[mSize];

@@ -16,6 +16,12 @@ namespace MinimaxBot
             Y = y;
         }
 
+        public bool HasNeighbourFrom(MoveDirection direction)
+        {
+            var (dx, dy) = MoveDirectionToDxDy(direction);
+            return ((X + dx) >= 0) && ((X + dx) <= 7) && ((Y + dy) >= 0) && ((Y + dy) <= 7);
+        }
+        
         public CheckMateCell NeighbourFrom(MoveDirection direction)
         {
             var (dx, dy) = MoveDirectionToDxDy(direction);
@@ -71,15 +77,14 @@ namespace MinimaxBot
             }
 
             var x = position[0] - 'a';
-            var y = position[1] - '0';
-            var res = new CheckMateCell(x, y);
-            return res;
+            var y = 7 - (position[1] - '1');
+            return new CheckMateCell(x, y);
         }
 
         public override string ToString()
         {
-            var xChar = 'a' + X;
-            return $"{xChar}{Y + 1}";
+            var xChar = (char)('a' + X);
+            return $"{xChar}{7 - Y + 1}";
         }
     }
 }

@@ -28,8 +28,8 @@ namespace MinimaxBot
 
             return currentLayer[0];
         }
-        
-        static void Main(string[] args)
+
+        static void TestAlphaBeta()
         {
             string[] inputs = Console.ReadLine().Split(' ');
             int d = int.Parse(inputs[0]);
@@ -41,6 +41,21 @@ namespace MinimaxBot
             AlphaBetaPruning alphaBetaPruning = new AlphaBetaPruning();
             alphaBetaPruning.EvaluateTree(root);
             Console.WriteLine($"{root.Evaluation} {alphaBetaPruning.CountVisited}");
+        }
+        
+        static void Main(string[] args)
+        {
+            var bot = new SheepAndWolvesBot(true, 3, BasicHeuristic.Evaluate);
+            var sheepCell = CheckMateCell.FromStringPosition("d8");
+            var wolvesCells = new[]
+            {
+                CheckMateCell.FromStringPosition("a1"),
+                CheckMateCell.FromStringPosition("c1"),
+                CheckMateCell.FromStringPosition("e1"),
+                CheckMateCell.FromStringPosition("g1")
+            };
+            var startPosition = new Position(sheepCell, wolvesCells);
+            Console.WriteLine(bot.NextMove(startPosition));
         }
     }
 }
