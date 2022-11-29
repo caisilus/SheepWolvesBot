@@ -48,7 +48,7 @@ namespace MinimaxBot
 
         private IEnumerable<CheckMateCell> NextSheepCells()
         {
-            var directions = Move.AllMoveDirections();
+            var directions = Move.AllMoveDirections().Reverse();
             var cells = new List<CheckMateCell>();
             
             foreach (var direction in directions)
@@ -74,7 +74,7 @@ namespace MinimaxBot
         public IEnumerable<Position> NextWolvesPositions()
         {
             List<Position> nextPositions = new List<Position>();
-            var directions = Move.AllMoveDirections();
+            var directions = Move.WolfMoveDirections();
 
             for (var i = 0; i < _wolvesCells.Length; i++)
             {

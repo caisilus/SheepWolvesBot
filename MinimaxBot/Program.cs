@@ -55,7 +55,58 @@ namespace MinimaxBot
                 CheckMateCell.FromStringPosition("g1")
             };
             var startPosition = new Position(sheepCell, wolvesCells);
-            Console.WriteLine(bot.NextMove(startPosition));
+            //Console.WriteLine(bot.NextMove(startPosition));
+            MainLoop(startPosition, bot);
+        }
+
+        static void MainLoop(Position startPosition, SheepAndWolvesBot bot)
+        {
+            var positionAtPlayerTurn = startPosition;
+            if (bot.ControllingSheep)
+            {
+                var botMove = bot.NextMove(positionAtPlayerTurn);
+                Console.WriteLine(botMove);
+                positionAtPlayerTurn = positionAtPlayerTurn.PositionMoveTo(botMove, true);
+            }
+            
+            while (true)
+            {
+                if (positionAtPlayerTurn.GameStatus != GameState.GameContinues)
+                {
+                    Console.WriteLine(WinMessage(positionAtPlayerTurn.GameStatus, bot.ControllingSheep));
+                    return;
+                }
+
+                // player turn
+                var playerMoveString = Console.ReadLine();
+                var playerMove = Move.FromString(playerMoveString?.Trim());
+                var positionAtBotTurn = positionAtPlayerTurn.PositionMoveTo(playerMove, !bot.ControllingSheep);
+                
+                // bot turn
+                var botMove = bot.NextMove(positionAtBotTurn);
+                Console.WriteLine(botMove);
+                positionAtPlayerTurn = positionAtBotTurn.PositionMoveTo(botMove, bot.ControllingSheep);
+            }
+        }
+
+        static string WinMessage(GameState gameStatus, bool controllingSheep)
+        {
+            if (controllingSheep)
+            {
+                if (gameStatus == GameState.SheepWin)
+                {
+                    return "I win!";
+                }
+                    
+                return "You win!";
+            }
+            
+            if (gameStatus == GameState.WolvesWin)
+            {
+                return "I win!";
+            }
+                
+            return "You win!";
         }
     }
 }

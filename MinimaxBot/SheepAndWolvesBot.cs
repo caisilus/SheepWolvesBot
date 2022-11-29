@@ -5,17 +5,18 @@ namespace MinimaxBot
 {
     public class SheepAndWolvesBot
     {
-        private bool _controllingSheep;
         private int _maxDepth;
         private Heuristic _heuristic;
         
         public SheepAndWolvesBot(bool controllingSheep, int maxDepth, Heuristic heuristic)
         {
-            _controllingSheep = controllingSheep;
+            ControllingSheep = controllingSheep;
             _maxDepth = maxDepth;
             _heuristic = heuristic;
         }
-        
+
+        public bool ControllingSheep { get; }
+
         public Move NextMove(Position position)
         {
             DynamicNode root = new DynamicNode(position);
@@ -27,17 +28,17 @@ namespace MinimaxBot
         private DynamicNode FindBestNode(DynamicNode root)
         {
             DynamicNode bestNode = null;
-            var bestEvaluation = _controllingSheep ? int.MaxValue : int.MinValue;
+            var bestEvaluation = ControllingSheep ? int.MaxValue : int.MinValue;
             foreach (var node in root.Children)
             {
-                if (_controllingSheep && node.Evaluation < bestEvaluation)
+                if (ControllingSheep && node.Evaluation < bestEvaluation)
                 {
                     bestNode = node;
                     bestEvaluation = node.Evaluation;
                     continue;
                 }
 
-                if (!_controllingSheep && node.Evaluation > bestEvaluation)
+                if (!ControllingSheep && node.Evaluation > bestEvaluation)
                 {
                     bestNode = node;
                     bestEvaluation = node.Evaluation;
@@ -49,7 +50,7 @@ namespace MinimaxBot
         
         public void EvaluateTree(DynamicNode root)
         {
-            EvaluateNode(root, _controllingSheep, int.MinValue, int.MaxValue);
+            EvaluateNode(root, ControllingSheep, int.MinValue, int.MaxValue);
         }
 
         private void EvaluateNode(DynamicNode node, bool sheepTurn, int alpha, int beta)

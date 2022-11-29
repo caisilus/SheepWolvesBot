@@ -57,5 +57,15 @@ namespace MinimaxBot
 
             return directions;
         }
+
+        public static MoveDirection[] WolfMoveDirections()
+        {
+            MoveDirection[] directions = new[]
+            {
+                MoveDirection.UpLeft, MoveDirection.UpRight
+            };
+
+            return directions;
+        }
     }
 }
