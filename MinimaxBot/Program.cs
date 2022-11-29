@@ -43,9 +43,10 @@ namespace MinimaxBot
             Console.WriteLine($"{root.Evaluation} {alphaBetaPruning.CountVisited}");
         }
         
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
-            var bot = new SheepAndWolvesBot(true, 3, BasicHeuristic.Evaluate);
+            var controllingSheep = int.Parse(args.Last()) == 0;
+            var bot = new SheepAndWolvesBot(controllingSheep, 7, BasicHeuristic.Evaluate);
             var sheepCell = CheckMateCell.FromStringPosition("d8");
             var wolvesCells = new[]
             {
@@ -56,15 +57,16 @@ namespace MinimaxBot
             };
             var startPosition = new Position(sheepCell, wolvesCells);
             //Console.WriteLine(bot.NextMove(startPosition));
-            MainLoop(startPosition, bot);
+            return MainLoop(startPosition, bot);
         }
 
-        static void MainLoop(Position startPosition, SheepAndWolvesBot bot)
+        static int MainLoop(Position startPosition, SheepAndWolvesBot bot)
         {
             var positionAtPlayerTurn = startPosition;
             if (bot.ControllingSheep)
             {
                 var botMove = bot.NextMove(positionAtPlayerTurn);
+                Console.Error.WriteLine(botMove);
                 Console.WriteLine(botMove);
                 positionAtPlayerTurn = positionAtPlayerTurn.PositionMoveTo(botMove, true);
             }
@@ -74,7 +76,13 @@ namespace MinimaxBot
                 if (positionAtPlayerTurn.GameStatus != GameState.GameContinues)
                 {
                     Console.WriteLine(WinMessage(positionAtPlayerTurn.GameStatus, bot.ControllingSheep));
-                    return;
+                    
+                    if (BotWin(positionAtPlayerTurn.GameStatus, bot.ControllingSheep))
+                    {
+                        return 0;
+                    }
+
+                    return 3;
                 }
 
                 // player turn
@@ -82,8 +90,21 @@ namespace MinimaxBot
                 var playerMove = Move.FromString(playerMoveString?.Trim());
                 var positionAtBotTurn = positionAtPlayerTurn.PositionMoveTo(playerMove, !bot.ControllingSheep);
                 
+                if (positionAtBotTurn.GameStatus != GameState.GameContinues)
+                {;
+                    Console.WriteLine(WinMessage(positionAtPlayerTurn.GameStatus, !bot.ControllingSheep));
+                    
+                    if (BotWin(positionAtPlayerTurn.GameStatus, bot.ControllingSheep))
+                    {
+                        return 0;
+                    }
+
+                    return 3;
+                }
+                
                 // bot turn
                 var botMove = bot.NextMove(positionAtBotTurn);
+                Console.Error.WriteLine(botMove);
                 Console.WriteLine(botMove);
                 positionAtPlayerTurn = positionAtBotTurn.PositionMoveTo(botMove, bot.ControllingSheep);
             }
@@ -107,6 +128,16 @@ namespace MinimaxBot
             }
                 
             return "You win!";
+        }
+
+        static bool BotWin(GameState gameStatus, bool controllingSheep)
+        {
+            if (controllingSheep)
+            {
+                return gameStatus == GameState.SheepWin;
+            }
+
+            return gameStatus == GameState.WolvesWin;
         }
     }
 }

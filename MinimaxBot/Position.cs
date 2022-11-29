@@ -160,6 +160,13 @@ namespace MinimaxBot
             return true;
         }
 
+        public bool IsCellFree(CheckMateCell cell)
+        {
+            if (_sheepCell == cell)
+                return false;
+            return _wolvesCells.All(wolfCell => wolfCell != cell);
+        }
+        
         private GameState CheckWin()
         {
             if (_sheepCell.Y == 7)

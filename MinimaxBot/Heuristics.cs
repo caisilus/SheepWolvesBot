@@ -23,7 +23,7 @@ namespace MinimaxBot
                 {
                     CheckMateCell currentCell = currentPosition.SheepCell;
                     CheckMateCell nextCell = nextPosition.SheepCell;
-                    if (distances[nextCell.Y][nextCell.X] == 0)
+                    if (distances[nextCell.Y][nextCell.X] == 0 && nextCell != position.SheepCell)
                     {
                         distances[nextCell.Y][nextCell.X] = distances[currentCell.Y][currentCell.X] + 1;
                         queue.Enqueue(nextPosition);    
